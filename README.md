@@ -28,16 +28,20 @@
     - 라이브러리 의존성 없는 브랜치
     - ESLint 적용
     - Prettier 적용
+
 2. Typescript 브랜치 생성
     - 1번 브랜치에 Typescript 설정 추가
     - 라이브러리 의존성 없는 브랜치
     - TSLint 적용
+
 3. React-Redux-Typescript 브랜치 생성
     - 2번 브랜치에 React 설정 추가
     - Redux Saga 없는 브랜치
     - Unit Test 추가
+
 4. React-Redux-Saga-TypeScript 브랜치 생성
     - 3번 브랜치에 Redux-Saga 설정 추가
+
 5. React-Redux-Saga-TypeScript-antd 브랜치 생성
     - 4번 브랜치에 Antd 설정 추가
 ```

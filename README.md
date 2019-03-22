@@ -1,5 +1,10 @@
 # React Redux Boilerplate
 
+### 0. environment
+- MacOS - <= High Sierra(10.13.6)
+- Node - <= 10.15.1
+- npm - <= 6.4.1
+- yarn - ^1.15.2
 ### 1. libraries
 - React - 16.8.4
 - Webpack - 4.29.6
@@ -7,10 +12,14 @@
 - react-router - 5.0.0
 - react-router-dom - 5.0.0
 - redux - 4.0.1
-- redux-saga
+- redux-saga - 1.0.2
+- Immutable-js - 4.0.0-rc.12
 - jest
 - TSLint
 - Prettier
+- ANTD - 3.15.1
+- 추가적인 부분
+  - Jenkins, Docker
 
 ### 2. Plan
 ```
@@ -32,3 +41,6 @@
 5. React-Redux-Saga-TypeScript-antd 브랜치 생성
     - 4번 브랜치에 Antd 설정 추가
 ```
+
+### maintenance
+지속적인 업데이트를 통해 라이브러리 버전업에 대응한다.

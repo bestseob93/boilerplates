@@ -1,0 +1,8 @@
+{
+  "name": "webpack-boilerplate",
+  "version": "1.0.0",
+  "description": "buzzni frontend boilerplate",
+  "main": "index.js",
+  "author": "Raphael",
+  "license": "MIT"
+}

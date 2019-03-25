@@ -2,7 +2,7 @@
   "name": "webpack-boilerplate",
   "version": "1.0.0",
   "description": "frontend boilerplate",
-  "main": "index.js",
+  "private": true,
   "author": "Raphael",
   "repository": {
     "type": "git",

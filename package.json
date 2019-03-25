@@ -1,10 +1,17 @@
 {
   "name": "webpack-boilerplate",
   "version": "1.0.0",
-  "description": "buzzni frontend boilerplate",
+  "description": "frontend boilerplate",
   "main": "index.js",
   "author": "Raphael",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/bestseob93/boilerplates"
+  },
   "license": "MIT",
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
   "devDependencies": {
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"

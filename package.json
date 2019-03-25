@@ -4,5 +4,9 @@
   "description": "buzzni frontend boilerplate",
   "main": "index.js",
   "author": "Raphael",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  }
 }

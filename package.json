@@ -29,6 +29,7 @@
     "eslint-plugin-standard": "^4.0.0",
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",
+    "inline-manifest-webpack-plugin": "^4.0.2",
     "mini-css-extract-plugin": "^0.5.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "style-loader": "^0.23.1",
@@ -41,5 +42,7 @@
     "jquery": "^3.3.1",
     "lodash": "^4.17.11"
   },
-  "sideEffects": ["*.css"]
+  "sideEffects": [
+    "*.css"
+  ]
 }

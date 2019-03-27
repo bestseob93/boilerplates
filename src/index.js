@@ -2,7 +2,7 @@ import _ from 'lodash'
 import printMe from './print.js'
 import { cube } from './math.js'
 
-require('./style.css')
+import './style.css'
 
 function component() {
     const element = document.createElement('div')

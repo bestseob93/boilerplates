@@ -27,7 +27,6 @@
     - 기본적인 Webpack 설정 Step 별로 따라가기
     - 라이브러리 의존성 없는 브랜치
     - ESLint 적용
-    - Prettier 적용
 
 2. Typescript 브랜치 생성
     - 1번 브랜치에 Typescript 설정 추가

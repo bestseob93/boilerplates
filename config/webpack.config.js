@@ -7,18 +7,18 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
-const appDirectory = fs.realpathSync(process.cwd()); // 디렉토리 경로
+const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
 const resolveApp = function(relativePath) {
-    return path.resolve(appDirectory, relativePath);
-};
+    return path.resolve(appDirectory, relativePath)
+}
 
 const paths = {
     appPath: resolveApp('src/index.js'),
     appHtml: resolveApp('public/index.html'),
     buildPath: resolveApp('dist'),
     appSrc: resolveApp('src'),
-    appNodeModules: resolveApp('node_modules'),
+    appNodeModules: resolveApp('node_modules')
 }
 
 module.exports = env => {
@@ -50,17 +50,28 @@ module.exports = env => {
             // 다른 옵션들은 https://webpack.js.org/plugins/split-chunks-plugin/
             splitChunks: {
                 chunks: 'all'
-            },
+            }
         },
         // 리소스 파일 내에서 아래 확장자를 import하여 사용하기 위한 모듈이다.
         module: {
             rules: [
-                // eslint-loader는 modules에서 가장 처음 불러와야 한다.
+                // eslint-loader는 babel-loader보다 먼저 불러와야 한다.
+                // https://webpack.js.org/loaders/eslint-loader
                 {
                     enforce: 'pre',
                     test: /\.js$/,
-                    esclude: /node_modules/,
+                    exclude: /node_modules/,
                     loader: 'eslint-loader'
+                },
+                {
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    }
                 },
                 {
                     test: /\.css$/,
@@ -103,7 +114,7 @@ module.exports = env => {
             isEnvProduction && new MiniCssExtractPlugin({
                 filename: 'assets/css/[name].[contenthash:8].css',
                 chunkFilename: 'assets/css/[name].[contenthash:8].chunk.css'
-            }),
+            })
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)
     }

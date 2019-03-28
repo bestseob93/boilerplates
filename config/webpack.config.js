@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const resolve = require('resolve')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
@@ -9,6 +10,7 @@ const InlineChunkHtmlPlugin = require('inline-manifest-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -16,12 +18,40 @@ const resolveApp = function(relativePath) {
     return path.resolve(appDirectory, relativePath)
 }
 
+const moduleFileExtensions = [
+    'web.mjs',
+    'mjs',
+    'web.js',
+    'js',
+    'web.ts',
+    'ts',
+    'web.tsx',
+    'tsx',
+    'json',
+    'web.jsx',
+    'jsx',
+]
+
+const resolveModule = (resolveFn, filePath) => {
+    const extension = moduleFileExtensions.find(extension =>
+        fs.existsSync(resolveFn(`${filePath}.${extension}`))
+    )
+
+    if (extension) {
+        return resolveFn(`${filePath}.${extension}`);
+    }
+
+    return resolveFn(`${filePath}.js`);
+}
+
 const paths = {
-    appPath: resolveApp('src/index.js'),
+    appPath: resolveApp('src/index.ts'),
+    appIndexJs: resolveModule(resolveApp, 'src/index'),
     appHtml: resolveApp('public/index.html'),
     buildPath: resolveApp('dist'),
     appSrc: resolveApp('src'),
-    appNodeModules: resolveApp('node_modules')
+    appNodeModules: resolveApp('node_modules'),
+    appTsConfig: resolveApp('tsconfig.json')
 }
 
 module.exports = env => {
@@ -31,7 +61,7 @@ module.exports = env => {
     return {
         mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
         entry: {
-            app: paths.appPath
+            app: paths.appIndexJs
         },
         output: {
             filename: isEnvProduction
@@ -48,7 +78,7 @@ module.exports = env => {
             // extensions 추가 전/후
             // 전: import file from './file.js'
             // 후: import file from './file'
-            extensions: ['.js'],
+            extensions: ['.js', '.ts'],
             modules: ['node_modules']
         },
         devtool: 'inline-source-map',
@@ -77,14 +107,6 @@ module.exports = env => {
         // 리소스 파일 내에서 아래 확장자를 import하여 사용하기 위한 모듈이다.
         module: {
             rules: [
-                // eslint-loader는 babel-loader보다 먼저 불러와야 한다.
-                // https://webpack.js.org/loaders/eslint-loader
-                {
-                    enforce: 'pre',
-                    test: /\.js$/,
-                    exclude: /node_modules/,
-                    loader: 'eslint-loader'
-                },
                 {
                     test: /\.js$/,
                     include: paths.appSrc,
@@ -173,6 +195,27 @@ module.exports = env => {
             new ManifestPlugin({
                 fileName: 'asset-manifest.json',
                 publicPath: '/'
+            }),
+            new ForkTsCheckerWebpackPlugin({
+                typescript: resolve.sync('typescript', {
+                    basedir: paths.appNodeModules,
+                }),
+                async: isEnvDevelopment,
+                useTypescriptIncrementalApi: true,
+                checkSyntacticErrors: true,
+                tsconfig: paths.appTsConfig,
+                reportFiles: [
+                    '**',
+                    '!**/*.json',
+                    '!**/__tests__/**',
+                    '!**/?(*.)(spec|test).*',
+                    '!**/src/setupProxy.*',
+                    '!**/src/setupTests.*',
+                ],
+                watch: paths.appSrc,
+                silent: true,
+                // The formatter is invoked directly in WebpackDevServerUtils during development
+                formatter: isEnvProduction ? typescriptFormatter : undefined
             })
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)

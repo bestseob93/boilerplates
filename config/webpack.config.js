@@ -7,6 +7,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const InlineChunkHtmlPlugin = require('inline-manifest-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
@@ -50,14 +51,18 @@ module.exports = env => {
             extensions: ['.js'],
             modules: ['node_modules']
         },
-        devtool: 'source-map',
+        devtool: 'inline-source-map',
         devServer: {
             contentBase: './public'
         },
         optimization: {
             minimize: isEnvProduction,
             // Terser는 Uglify-js가 ES6+ 이상 서포트를 하지 않게되어 나온 JS Parser다.
-            minimizer: [new TerserPlugin({}), new OptimizeCSSAssetsPlugin({})],
+            minimizer: [new TerserPlugin({}), new OptimizeCSSAssetsPlugin({
+                cssProcessorOptions: {
+                    parser: safePostCssParser
+                }
+            })],
             // 목적: 업데이트 시 같은 파일명으로 배포 시 브라우저 캐싱으로 인해 업데이트가 이뤄지지 않는다.
             // 런타임은 웹팩 환경으로 파일들에서 import나 require 등이 문법에 상관 없이 __webpack_require__ 로 변환되는 등의 작업을 한다.
             runtimeChunk: 'single',
@@ -82,7 +87,7 @@ module.exports = env => {
                 },
                 {
                     test: /\.js$/,
-                    exclude: /node_modules/,
+                    include: paths.appSrc,
                     use: {
                         loader: 'babel-loader',
                         options: {
@@ -99,19 +104,50 @@ module.exports = env => {
                             options: {
                                 sourceMap: isEnvDevelopment
                             }
+                        },
+                        {
+                            loader: require.resolve('postcss-loader'),
+                            options: {
+                                // CSS import 시 필요.
+                                // https://github.com/facebook/create-react-app/issues/2677
+                                ident: 'postcss',
+                                plugins: () => [
+                                    require('postcss-flexbugs-fixes'),
+                                    require('postcss-preset-env')({
+                                        autoprefixer: {
+                                            flexbox: 'no-2009'
+                                        },
+                                        stage: 3
+                                    })
+                                ]
+                            }
                         }
                     ]
                 },
                 {
-                    test: /\.(png|svg|jpg|gif)$/,
-                    use: [
-                        'file-loader'
-                    ]
-                },
-                {
-                    test: /\.(woff|woff2|eot|ttf|otf)$/,
-                    use: [
-                        'file-loader'
+                    // oneOf 배열 내에 매칭되는 것에만 해당 모듈을 실행한다.
+                    oneOf: [
+                        {
+                            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+                            use: [
+                                {
+                                    loader: require.resolve('url-loader'),
+                                    options: {
+                                        // 10kb 미만은 url-loader로 처리
+                                        limit: 10000,
+                                        name: 'assets/media/[name].[hash:8].[ext]'
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            loader: require.resolve('file-loader'),
+                            // js, html, json, css 파일 외의 형식 load
+                            exclude: [/\.js$/, /\.html$/, /\.json$/, /\.css$/],
+                            options: {
+                                name: 'assets/media/[name].[hash:8].[ext]'
+                            }
+                        }
                     ]
                 }
             ]

@@ -7,6 +7,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const InlineChunkHtmlPlugin = require('inline-manifest-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const ManifestPlugin = require('webpack-manifest-plugin')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -32,7 +33,14 @@ module.exports = env => {
             app: paths.appPath
         },
         output: {
-            filename: 'assets/js/[name].[chunkhash:8].js',
+            filename: isEnvProduction
+                ? 'assets/js/[name].[chunkhash:8].js'
+                : isEnvDevelopment && 'assets/js/bundle.js',
+            // 코드 스플리팅을 사용한다면 추가적인 청크 파일이 존재할 수 있음.
+            // filename을 배포와 개발 모드로 분리하는 이유는 chunkhash가 개발 모드에서 컴파일 시간을 증가시키기 떄문.
+            chunkFilename: isEnvProduction
+                ? 'assets/js/[name].[chunkhash:8].chunk.js'
+                : isEnvDevelopment && 'assets/js/[name].chunk.js',
             path: isEnvProduction ? paths.buildPath : undefined
         },
         resolve: {
@@ -125,6 +133,10 @@ module.exports = env => {
             isEnvProduction && new MiniCssExtractPlugin({
                 filename: 'assets/css/[name].[contenthash:8].css',
                 chunkFilename: 'assets/css/[name].[contenthash:8].chunk.css'
+            }),
+            new ManifestPlugin({
+                fileName: 'asset-manifest.json',
+                publicPath: '/'
             })
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)

@@ -35,6 +35,13 @@ module.exports = env => {
             filename: 'assets/js/[name].[chunkhash:8].js',
             path: isEnvProduction ? paths.buildPath : undefined
         },
+        resolve: {
+            // extensions 추가 전/후
+            // 전: import file from './file.js'
+            // 후: import file from './file'
+            extensions: ['.js'],
+            modules: ['node_modules']
+        },
         devtool: 'source-map',
         devServer: {
             contentBase: './public'

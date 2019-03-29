@@ -10,7 +10,12 @@ const InlineChunkHtmlPlugin = require('inline-manifest-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
+<<<<<<< HEAD
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+=======
+const ErrorOverlayPlugin = require('error-overlay-webpack-plugin')
+const FormatMessagesWebpackPlugin = require('format-messages-webpack-plugin')
+>>>>>>> ee11807938ca6d64efe37f6242bb27d5e1841a59
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -50,8 +55,13 @@ const paths = {
     appHtml: resolveApp('public/index.html'),
     buildPath: resolveApp('dist'),
     appSrc: resolveApp('src'),
+<<<<<<< HEAD
     appNodeModules: resolveApp('node_modules'),
     appTsConfig: resolveApp('tsconfig.json')
+=======
+    appPublic: resolveApp('public'),
+    appNodeModules: resolveApp('node_modules')
+>>>>>>> ee11807938ca6d64efe37f6242bb27d5e1841a59
 }
 
 module.exports = env => {
@@ -81,9 +91,13 @@ module.exports = env => {
             extensions: ['.js', '.ts'],
             modules: ['node_modules']
         },
-        devtool: 'inline-source-map',
+        devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',
         devServer: {
-            contentBase: './public'
+            contentBase: paths.appPublic,
+            // 필요없는 웹팩 로그들 삭제해준다
+            quiet: true,
+            // 클라이언트 단 로그를 삭제해준다
+            clientLogLevel: 'none'
         },
         optimization: {
             minimize: isEnvProduction,
@@ -107,6 +121,22 @@ module.exports = env => {
         // 리소스 파일 내에서 아래 확장자를 import하여 사용하기 위한 모듈이다.
         module: {
             rules: [
+<<<<<<< HEAD
+=======
+                // eslint-loader는 babel-loader보다 먼저 불러와야 한다.
+                // https://webpack.js.org/loaders/eslint-loader
+                {
+                    enforce: 'pre',
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    loader: 'eslint-loader',
+                    options: {
+                        // 어느 라인에서 에러인지 시각적인 포맷팅 (react-dev-utils)
+                        formatter: require.resolve('./eslintFormatter'),
+                        emitWarning: true
+                    }
+                },
+>>>>>>> ee11807938ca6d64efe37f6242bb27d5e1841a59
                 {
                     test: /\.js$/,
                     include: paths.appSrc,
@@ -186,8 +216,6 @@ module.exports = env => {
             // 네트워크 요청 보내기엔 너무 작은 용량이기 때문에 웹팩의 런타임 스크립트를 html에 inject 시킴.
             isEnvProduction && new InlineChunkHtmlPlugin(),
             isEnvProduction && new webpack.HashedModuleIdsPlugin(),
-            // runtime.js는 네트워크 요청을 보내기엔 너무 작으므로 html에 인라인으로 삽입한다.
-            // isEnvProduction && new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime~.+[.]js/]),
             isEnvProduction && new MiniCssExtractPlugin({
                 filename: 'assets/css/[name].[contenthash:8].css',
                 chunkFilename: 'assets/css/[name].[contenthash:8].chunk.css'
@@ -196,6 +224,7 @@ module.exports = env => {
                 fileName: 'asset-manifest.json',
                 publicPath: '/'
             }),
+<<<<<<< HEAD
             new ForkTsCheckerWebpackPlugin({
                 typescript: resolve.sync('typescript', {
                     basedir: paths.appNodeModules,
@@ -218,6 +247,12 @@ module.exports = env => {
                 formatter: isEnvProduction ? typescriptFormatter : undefined
             })
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
+=======
+            // 기존 웹팩 대신 커스텀한 웹팩 메시지로 깔끔하게 출력 (브라우저 알림 true/false)
+            isEnvDevelopment && new FormatMessagesWebpackPlugin({ notification: false }),
+            // 에러난 부분을 브라우저에서도 표시해준다.
+            isEnvDevelopment && new ErrorOverlayPlugin()
+>>>>>>> ee11807938ca6d64efe37f6242bb27d5e1841a59
         ].filter(Boolean)
     }
 }

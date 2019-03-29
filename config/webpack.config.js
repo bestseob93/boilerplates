@@ -11,6 +11,9 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const FormatMessagesWebpackPlugin = require('format-messages-webpack-plugin')
+const ErrorOverlayPlugin = require('error-overlay-webpack-plugin')
+const typescriptFormatter = require('./typescriptFormatter')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -29,7 +32,7 @@ const moduleFileExtensions = [
     'tsx',
     'json',
     'web.jsx',
-    'jsx',
+    'jsx'
 ]
 
 const resolveModule = (resolveFn, filePath) => {
@@ -38,10 +41,10 @@ const resolveModule = (resolveFn, filePath) => {
     )
 
     if (extension) {
-        return resolveFn(`${filePath}.${extension}`);
+        return resolveFn(`${filePath}.${extension}`)
     }
 
-    return resolveFn(`${filePath}.js`);
+    return resolveFn(`${filePath}.js`)
 }
 
 const paths = {
@@ -61,9 +64,9 @@ module.exports = env => {
 
     return {
         mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
-        entry: {
-            app: paths.appIndexJs
-        },
+        entry: [
+            paths.appIndexJs
+        ],
         output: {
             filename: isEnvProduction
                 ? 'assets/js/[name].[chunkhash:8].js'
@@ -79,7 +82,7 @@ module.exports = env => {
             // extensions 추가 전/후
             // 전: import file from './file.js'
             // 후: import file from './file'
-            extensions: ['.js', '.ts'],
+            extensions: ['.js', '.ts', '.tsx'],
             modules: ['node_modules']
         },
         devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',
@@ -87,6 +90,7 @@ module.exports = env => {
             contentBase: paths.appPublic,
             // 필요없는 웹팩 로그들 삭제해준다
             quiet: true,
+            overlay: false,
             // 클라이언트 단 로그를 삭제해준다
             clientLogLevel: 'none'
         },
@@ -112,6 +116,14 @@ module.exports = env => {
         // 리소스 파일 내에서 아래 확장자를 import하여 사용하기 위한 모듈이다.
         module: {
             rules: [
+                {
+                    test: /\.ts(x?)$/,
+                    loader: 'ts-loader',
+                    options: {
+                      // fork ts에서 해주므로 disable 해준다. (퍼포먼스 개선)
+                        transpileOnly: true
+                    }
+                },
                 {
                     test: /\.js$/,
                     include: paths.appSrc,
@@ -170,7 +182,7 @@ module.exports = env => {
                         {
                             loader: require.resolve('file-loader'),
                             // js, html, json, css 파일 외의 형식 load
-                            exclude: [/\.js$/, /\.html$/, /\.json$/, /\.css$/],
+                            exclude: [/\.js$/, /\.ts$/, /\.html$/, /\.json$/, /\.css$/],
                             options: {
                                 name: 'assets/media/[name].[hash:8].[ext]'
                             }
@@ -199,26 +211,25 @@ module.exports = env => {
                 fileName: 'asset-manifest.json',
                 publicPath: '/'
             }),
+            isEnvDevelopment && new FormatMessagesWebpackPlugin({ notification: false }),
+            isEnvDevelopment && new ErrorOverlayPlugin(),
+            // ForkTsCheckerWebpackPlugin은 FormatMessage, ErrorOverlay 보다 밑에 있어야함.
             new ForkTsCheckerWebpackPlugin({
                 typescript: resolve.sync('typescript', {
-                    basedir: paths.appNodeModules,
+                    basedir: paths.appNodeModules
                 }),
-                async: isEnvDevelopment,
+                async: false,
                 useTypescriptIncrementalApi: true,
                 checkSyntacticErrors: true,
                 tsconfig: paths.appTsConfig,
                 reportFiles: [
                     '**',
                     '!**/*.json',
-                    '!**/__tests__/**',
-                    '!**/?(*.)(spec|test).*',
-                    '!**/src/setupProxy.*',
-                    '!**/src/setupTests.*',
+                    '!**/__tests__/**'
                 ],
                 watch: paths.appSrc,
-                silent: true,
                 // The formatter is invoked directly in WebpackDevServerUtils during development
-                formatter: isEnvProduction ? typescriptFormatter : undefined
+                formatter: typescriptFormatter
             })
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)

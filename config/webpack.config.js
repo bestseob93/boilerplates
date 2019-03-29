@@ -10,6 +10,7 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ErrorOverlayPlugin = require('error-overlay-webpack-plugin')
+const FormatMessagesWebpackPlugin = require('format-messages-webpack-plugin')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -22,6 +23,7 @@ const paths = {
     appHtml: resolveApp('public/index.html'),
     buildPath: resolveApp('dist'),
     appSrc: resolveApp('src'),
+    appPublic: resolveApp('public'),
     appNodeModules: resolveApp('node_modules')
 }
 
@@ -54,7 +56,11 @@ module.exports = env => {
         },
         devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',
         devServer: {
-            contentBase: './public'
+            contentBase: paths.appPublic,
+            // 필요없는 웹팩 로그들 삭제해준다
+            quiet: true,
+            // 클라이언트 단 로그를 삭제해준다
+            clientLogLevel: 'none'
         },
         optimization: {
             minimize: isEnvProduction,
@@ -86,7 +92,8 @@ module.exports = env => {
                     exclude: /node_modules/,
                     loader: 'eslint-loader',
                     options: {
-                        formatter: require.resolve('./eslintFormatter.js'),
+                        // 어느 라인에서 에러인지 시각적인 포맷팅 (react-dev-utils)
+                        formatter: require.resolve('./eslintFormatter'),
                         emitWarning: true
                     }
                 },
@@ -169,8 +176,6 @@ module.exports = env => {
             // 네트워크 요청 보내기엔 너무 작은 용량이기 때문에 웹팩의 런타임 스크립트를 html에 inject 시킴.
             isEnvProduction && new InlineChunkHtmlPlugin(),
             isEnvProduction && new webpack.HashedModuleIdsPlugin(),
-            // runtime.js는 네트워크 요청을 보내기엔 너무 작으므로 html에 인라인으로 삽입한다.
-            // isEnvProduction && new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime~.+[.]js/]),
             isEnvProduction && new MiniCssExtractPlugin({
                 filename: 'assets/css/[name].[contenthash:8].css',
                 chunkFilename: 'assets/css/[name].[contenthash:8].chunk.css'
@@ -179,9 +184,10 @@ module.exports = env => {
                 fileName: 'asset-manifest.json',
                 publicPath: '/'
             }),
+            // 기존 웹팩 대신 커스텀한 웹팩 메시지로 깔끔하게 출력 (브라우저 알림 true/false)
+            isEnvDevelopment && new FormatMessagesWebpackPlugin({ notification: false }),
             // 에러난 부분을 브라우저에서도 표시해준다.
             isEnvDevelopment && new ErrorOverlayPlugin()
-            // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)
     }
 }

@@ -51,7 +51,7 @@ module.exports = env => {
             // extensions 추가 전/후
             // 전: import file from './file.js'
             // 후: import file from './file'
-            extensions: ['.js'],
+            extensions: ['.js', 'jsx'],
             modules: ['node_modules']
         },
         devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',

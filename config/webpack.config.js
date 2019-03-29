@@ -117,18 +117,18 @@ module.exports = env => {
         module: {
             rules: [
                 {
+                    test: /\.(js|jsx|ts|tsx)$/,
+                    include: paths.appSrc,
+                    use: {
+                        loader: 'babel-loader'
+                    }
+                },
+                {
                     test: /\.ts(x?)$/,
                     loader: 'ts-loader',
                     options: {
                       // fork ts에서 해주므로 disable 해준다. (퍼포먼스 개선)
                         transpileOnly: true
-                    }
-                },
-                {
-                    test: /\.js$/,
-                    include: paths.appSrc,
-                    use: {
-                        loader: 'babel-loader'
                     }
                 },
                 {
@@ -179,7 +179,7 @@ module.exports = env => {
                         {
                             loader: require.resolve('file-loader'),
                             // js, html, json, css 파일 외의 형식 load
-                            exclude: [/\.js$/, /\.ts$/, /\.html$/, /\.json$/, /\.css$/],
+                            exclude: [/\.(js|jsx|ts|tsx)$/, /\.html$/, /\.json$/, /\.css$/],
                             options: {
                                 name: 'assets/media/[name].[hash:8].[ext]'
                             }

@@ -11,7 +11,7 @@ function component() {
     element.innerHTML = _.join(['Hello', 'World!', cube(5)], ' ')
     element.classList.add('red')
     btn.innerHTML = 'Click Me!'
-    btn.onclick = printMe
+    btn.onclick = printMes
 
     element.appendChild(btn)
 

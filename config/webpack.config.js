@@ -9,6 +9,7 @@ const InlineChunkHtmlPlugin = require('inline-manifest-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const safePostCssParser = require('postcss-safe-parser')
 const ManifestPlugin = require('webpack-manifest-plugin')
+const ErrorOverlayPlugin = require('error-overlay-webpack-plugin')
 
 const appDirectory = fs.realpathSync(process.cwd()) // 디렉토리 경로
 
@@ -51,7 +52,7 @@ module.exports = env => {
             extensions: ['.js'],
             modules: ['node_modules']
         },
-        devtool: 'inline-source-map',
+        devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',
         devServer: {
             contentBase: './public'
         },
@@ -83,7 +84,11 @@ module.exports = env => {
                     enforce: 'pre',
                     test: /\.js$/,
                     exclude: /node_modules/,
-                    loader: 'eslint-loader'
+                    loader: 'eslint-loader',
+                    options: {
+                        formatter: require.resolve('./eslintFormatter.js'),
+                        emitWarning: true
+                    }
                 },
                 {
                     test: /\.js$/,
@@ -173,7 +178,9 @@ module.exports = env => {
             new ManifestPlugin({
                 fileName: 'asset-manifest.json',
                 publicPath: '/'
-            })
+            }),
+            // 에러난 부분을 브라우저에서도 표시해준다.
+            isEnvDevelopment && new ErrorOverlayPlugin()
             // new NamedModulesPlugin() // 가독성 때문에 development 환경에서 유용하다.
         ].filter(Boolean)
     }

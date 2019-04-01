@@ -83,7 +83,7 @@ module.exports = env => {
             // 전: import file from './file.js'
             // 후: import file from './file'
             extensions: ['.js', '.ts', '.tsx'],
-            modules: ['node_modules']
+            modules: [paths.appNodeModules, paths.appSrc]
         },
         devtool: isEnvProduction ? 'source-map' : 'cheap-module-source-map',
         devServer: {
@@ -102,9 +102,10 @@ module.exports = env => {
                     parser: safePostCssParser
                 }
             })],
-            // 목적: 업데이트 시 같은 파일명으로 배포 시 브라우저 캐싱으로 인해 업데이트가 이뤄지지 않는다.
+            // long term caching이 필요할 때 사용한다.
             // 런타임은 웹팩 환경으로 파일들에서 import나 require 등이 문법에 상관 없이 __webpack_require__ 로 변환되는 등의 작업을 한다.
             runtimeChunk: 'single',
+            // 필요한 이유: 업데이트 시 같은 파일명으로 배포 시 브라우저 캐싱으로 인해 업데이트가 이뤄지지 않는다.
             // node_modules에서 import 한 파일들은 수정될 일이 거의 없으므로 따로 chunk하여 캐싱되게 한다.
             // 이렇게 구성되면 배포 시 src에 있는 파일 변동에만 hash를 적용하여 캐싱을 방지한다.
             // 다른 옵션들은 https://webpack.js.org/plugins/split-chunks-plugin/
@@ -164,7 +165,8 @@ module.exports = env => {
                     // oneOf 배열 내에 매칭되는 것에만 해당 모듈을 실행한다.
                     oneOf: [
                         {
-                            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+                            // url-loader는 file-loader처럼 동작하지만 10kb 미만인 파일은 url로 삽입하여 네트워크 request 비용을 줄인다.
+                            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/, /\.svg$/],
                             use: [
                                 {
                                     loader: require.resolve('url-loader'),

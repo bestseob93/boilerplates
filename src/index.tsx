@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import printMe from './print'
-
+import ss from './cat.jpg'
+import ab from './ss.svg'
 interface propTypes {
     name: string
 }
@@ -11,6 +12,8 @@ const App: React.SFC<propTypes> = () => {
     return (
         <div>
             ddd
+            <img src={ab} />
+            <img src={ss} />
         </div>
     )
 }
